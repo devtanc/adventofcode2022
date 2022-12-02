@@ -4,7 +4,7 @@ use std::path::Path;
 
 pub fn gold_star_1() -> u32 {
   let filepath: &'static str = "src/one/input.txt";
-  let mut totals: Vec<u32> = get_totals(filepath);
+  let mut totals: Vec<u32> = interpret_data(filepath);
 
   totals.sort();
 
@@ -13,7 +13,7 @@ pub fn gold_star_1() -> u32 {
 
 pub fn gold_star_2() -> u32 {
   let filepath: &'static str = "src/one/input.txt";
-  let mut totals: Vec<u32> = get_totals(filepath);
+  let mut totals: Vec<u32> = interpret_data(filepath);
 
   totals.sort();
 
@@ -31,7 +31,7 @@ where P: AsRef<Path>, {
     Ok(io::BufReader::new(file).lines())
 }
 
-fn get_totals(filepath: &'static str) -> Vec<u32> {
+fn interpret_data(filepath: &'static str) -> Vec<u32> {
   let mut totals: Vec<u32> = Vec::new();
   if let Ok(lines) = read_lines(filepath) {
     let mut curr_total: u32 = 0;
