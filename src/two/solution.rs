@@ -3,7 +3,6 @@ use std::io::{self, BufRead};
 use std::path::Path;
 
 #[derive(Clone)]
-
 enum Weapon {
   Rock = 1,
   Paper = 2,
