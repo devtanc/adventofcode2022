@@ -1,6 +1,6 @@
-mod two;
+mod three;
 
-use two::solution::{gold_star_1, gold_star_2};
+use three::solution::{gold_star_1, gold_star_2};
 
 fn main() {
     let result: u32 = gold_star_1();
