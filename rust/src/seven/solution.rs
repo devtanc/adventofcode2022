@@ -15,8 +15,10 @@ enum Cmd {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 struct DirFile {
-  size: usize
+  size: usize,
+  name: String
 }
 
 #[derive(Debug)]
@@ -44,8 +46,17 @@ impl Directories {
     return matches;
   }
 
-  pub fn update_deep_size_for_leaf_dirs(&mut self) {
+  pub fn calculate_file_size_totals(&mut self) {
     for (_, dir) in &mut self.directories {
+      let mut file_size_sum = 0;
+      if dir.files.len() > 0 {
+        for file in &dir.files {
+          file_size_sum += file.size;
+        }
+      }
+
+      dir.file_size_total = file_size_sum;
+
       if dir.dirs.len() == 0 {
         dir.deep_size_total = dir.file_size_total;
       }
@@ -56,7 +67,6 @@ impl Directories {
     let mut sum = 0;
     for key in keys {
       if let Some(dir) = self.directories.get(&key) {
-        // println!("{:?}", dir);
         sum += dir.deep_size_total;
       }
     }
@@ -64,7 +74,7 @@ impl Directories {
   }
 
   pub fn calculate_directory_totals(&mut self, key: String) -> usize {
-    let mut children: Vec<String> = Vec::new();
+    let children: Vec<String>;
     if let Some(dir) = self.directories.get_mut(&key) {
       if dir.dirs.len() == 0 {
         return dir.deep_size_total;
@@ -81,7 +91,7 @@ impl Directories {
     }
     
     if let Some(dir) = self.directories.get_mut(&key) {
-      if (dir.dirs.len() > 0) {
+      if dir.dirs.len() > 0 {
         dir.deep_size_total = deep_size_total + dir.file_size_total;
       }
       return dir.deep_size_total;
@@ -93,27 +103,25 @@ impl Directories {
   pub fn find_dir_with_closest_size_over_value(&self, value: usize) -> (String, usize) {
     let mut closest_size = TOTAL_DISK_SPACE_AVAILABLE;
     let mut closest_size_name: String = "".to_string();
+    
     for (_, dir) in &self.directories {
       let diff = value.abs_diff(dir.deep_size_total);
-      if diff < closest_size && diff > value {
-        closest_size = diff;
+      if diff < closest_size && dir.deep_size_total > value {
+        closest_size = dir.deep_size_total;
         closest_size_name = dir.name.clone();
       }
     }
+
     return (closest_size_name, closest_size);
   }
 }
 
 pub fn gold_star_1() -> String {
   let mut data = interpret_data(FILEPATH);
-  data.update_deep_size_for_leaf_dirs();
-
-  // println!("START DIRS: {:?}", data.directories.len());
-
+  data.calculate_file_size_totals();
   data.calculate_directory_totals("".to_string());
 
   let matches = data.get_all_small_dirs();
-  // println!("FINAL DIRS: {}", matches.len());
   let sum = data.sum_all_by_keys(matches);
 
   return sum.to_string();
@@ -121,33 +129,15 @@ pub fn gold_star_1() -> String {
 
 pub fn gold_star_2() -> String {
   let mut data = interpret_data(FILEPATH);
-  data.update_deep_size_for_leaf_dirs();
-
-  println!("START DIRS: {:?}", data.directories.len());
-
-  let calculated_total = data.calculate_directory_totals("".to_string());
-  println!("CALCULATED TOTAL: {}", calculated_total);
-
-  let total_from_data = get_total_size_from_data(FILEPATH);
-  println!("DATA TOTAL: {}", total_from_data);
-
-  let mut total_used_space: usize = 0;
-  if let Some(dir) = data.directories.get(&"".to_string()) {
-    println!("{:?}", dir);
-    total_used_space = dir.deep_size_total;
-  }
-
-  println!("USED: {:?}", total_used_space);
-  let curr_unused_space = total_used_space.abs_diff(TOTAL_DISK_SPACE_AVAILABLE);
-  let target = curr_unused_space.abs_diff(TARGET_UNUSED_SPACE);
+  data.calculate_file_size_totals();
   
-  println!("UNUSED: {:?}", curr_unused_space);
-  println!("TARGET: {:?}", target);
+  let total_used_space = data.calculate_directory_totals("".to_string());
+  let total_free_space = TOTAL_DISK_SPACE_AVAILABLE.abs_diff(total_used_space);
+  let minimum_delete_quota = TARGET_UNUSED_SPACE.abs_diff(total_free_space);
 
-  let result = data.find_dir_with_closest_size_over_value(target);
-  
-  println!("RESULT: {:?}", result);
+  let result = data.find_dir_with_closest_size_over_value(minimum_delete_quota);
 
+  println!("{:?}", result);
   return result.1.to_string();
 }
 
@@ -241,7 +231,6 @@ fn interpret_data(fp: &'static str) -> Directories {
           },
           _ => {
             let mut curr_dir_name = hierarchy.join("/");
-            // println!("{} : {}", curr_dir_name, line_parts[1]);
             if line_parts[0] == "dir" {
               if let Some(curr_dir) = dirs.directories.get_mut(&curr_dir_name) {
                 curr_dir_name.push_str("/");
@@ -250,11 +239,13 @@ fn interpret_data(fp: &'static str) -> Directories {
               }
             } else {
               let size = line_parts[0].parse().unwrap();
+              let name = line_parts[1];
               curr_dir_total_size += size;
 
               if let Some(curr_dir) = dirs.directories.get_mut(&curr_dir_name) {
                 curr_dir.files.push(DirFile {
-                  size
+                  size,
+                  name: name.to_string()
                 });
               }
             }
@@ -266,9 +257,7 @@ fn interpret_data(fp: &'static str) -> Directories {
     if curr_dir_total_size > 0 && hierarchy.len() > 0 {
       let curr_dir_path = hierarchy.join("/");
       if let Some(curr_dir) = dirs.directories.get_mut(&curr_dir_path) {
-        // println!("{} TOTAL: {}", curr_dir.name, curr_dir_total_size);
         curr_dir.file_size_total = curr_dir_total_size;
-        curr_dir_total_size = 0;
       } else {
         panic!("NO DIR FOUND FOR {}", curr_dir_path);
       }
@@ -276,29 +265,3 @@ fn interpret_data(fp: &'static str) -> Directories {
   }
   return dirs;
 }
-
-fn get_total_size_from_data(fp: &'static str) -> usize {
-  let mut total = 0;
-  
-  if let Ok(lines) = read_lines(fp) {
-    for line in lines {
-      if let Ok(line_data) = line {
-        let line_parts: Vec<&str> = line_data.split(" ").collect();
-
-        match line_parts[0] {
-          "$" => {},
-          "dir" => {}
-          _ => {
-            let size: usize = line_parts[0].parse().unwrap();
-            total += size;
-          }
-        }
-      }
-    }
-  }
-
-  return total;
-}
-
-
-// nlhfgpr
