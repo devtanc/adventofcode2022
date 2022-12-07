@@ -4,7 +4,7 @@ use std::path::Path;
 
 static FILEPATH: &'static str = "src/three/input.txt";
 
-pub fn gold_star_1() -> u32 {
+pub fn gold_star_1() -> String {
   let data = interpret_data(FILEPATH);
 
   let mut total: u32 = 0;
@@ -14,7 +14,7 @@ pub fn gold_star_1() -> u32 {
     total += value;
   }
 
-  return total;
+  return total.to_string();
 }
 
 fn find_unsorted_item_in_pack_pair(pack_pair: (Vec<char>, Vec<char>)) -> char {
@@ -50,7 +50,7 @@ fn get_value_for_item(item: char) -> u32 {
   
 }
 
-pub fn gold_star_2() -> u32 {
+pub fn gold_star_2() -> String {
   let data = interpret_data_differently(FILEPATH);
 
   let mut total: u32 = 0;
@@ -65,7 +65,7 @@ pub fn gold_star_2() -> u32 {
     }
   }
 
-  return total;
+  return total.to_string();
 }
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>

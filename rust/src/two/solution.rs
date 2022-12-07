@@ -16,7 +16,7 @@ enum Result {
   Win = 6
 }
 
-pub fn gold_star_1() -> u32 {
+pub fn gold_star_1() -> String {
   let filepath: &'static str = "src/two/input.txt";
   let games = interpret_data(filepath);
 
@@ -32,10 +32,10 @@ pub fn gold_star_1() -> u32 {
     total = total + result_value + weapon_value;
   }
 
-  return total;
+  return total.to_string();
 }
 
-pub fn gold_star_2() -> u32 {
+pub fn gold_star_2() -> String {
   let filepath: &'static str = "src/two/input.txt";
   let games = interpret_data(filepath);
 
@@ -51,7 +51,7 @@ pub fn gold_star_2() -> u32 {
     total = total + result_value + weapon_value;
   }
 
-  return total;
+  return total.to_string();
 }
 
 fn get_match_result(choices: &(Weapon, Weapon)) -> Result {
