@@ -1,6 +1,6 @@
-mod seven;
+mod six;
 
-use seven::solution::{gold_star_1, gold_star_2};
+use six::solution::{gold_star_1, gold_star_2};
 
 fn main() {
     let result: String = gold_star_1();
