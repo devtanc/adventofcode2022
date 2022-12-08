@@ -10,7 +10,7 @@ struct Elf {
   end: usize,
 }
 
-pub fn gold_star_1() -> u32 {
+pub fn gold_star_1() -> String {
   let data = interpret_data(FILEPATH);
   let mut count = 0;
 
@@ -22,10 +22,10 @@ pub fn gold_star_1() -> u32 {
     }
   }
 
-  return count;
+  return count.to_string();
 }
 
-pub fn gold_star_2() -> u32 {
+pub fn gold_star_2() -> String {
   let data = interpret_data(FILEPATH);
   let mut count = 0;
 
@@ -35,7 +35,7 @@ pub fn gold_star_2() -> u32 {
     }
   }
 
-  return count;
+  return count.to_string();
 }
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
